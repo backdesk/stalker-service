@@ -18,8 +18,6 @@ module.exports = function (passport) {
     });
 
     passport.use(new LocalStrategy(function (username, done) {
-      password = bcrypt.hashSync(password, 10);
-
       service.getByCredentials(username, function (err, user) {
         if (err) return done(err);
 
