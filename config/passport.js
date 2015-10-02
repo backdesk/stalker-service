@@ -1,4 +1,6 @@
-// Strategies.
+var bcrypt = require('bcrypt');
+
+
 var LocalStrategy = require('passport-local');
 
 module.exports = function (passport) {
@@ -15,12 +17,19 @@ module.exports = function (passport) {
       })
     });
 
-    passport.use(new LocalStrategy(function (username, password, done) {
-      service.getByCredentials(username, password, function (err, user) {
-        if (err) return done(err);
-        if (!user) return done(null, false);
+    passport.use(new LocalStrategy(function (username, done) {
+      password = bcrypt.hashSync(password, 10);
 
-        return done(null, user);
+      service.getByCredentials(username, function (err, user) {
+        if (err) return done(err);
+
+        if(user && bcrypt.compareSync(password, user.password)) {
+          return done(null, user);
+        }
+
+        return done(null, false);
       });
     }));
 }
+
+$2a$10$G8FKn7oqKp7UMTdian9XZegWFYTkmWBCLehWWIhHTuXr0uXKgQQb6

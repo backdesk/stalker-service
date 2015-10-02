@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
-
 var user = mongoose.model('User');
+
+var ObjectId = mongoose.Types.ObjectId;
 
 module.exports =  {
   get : function (id, cb) {
