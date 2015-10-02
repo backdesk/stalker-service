@@ -1,0 +1,6 @@
+var app = require('../app');
+var config = require('../config')();
+
+app.listen(config.port, function () {
+    console.info('Stalker started on port ' + config.port);
+});
