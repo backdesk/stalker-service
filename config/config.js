@@ -1,6 +1,6 @@
 var config = {
     local : {
-        port : 3000,
+        port : 3333,
         session : {
             secret : 'uDnjlvqOGNzGsEEArWd9',
             resave : false,

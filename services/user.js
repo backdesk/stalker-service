@@ -13,7 +13,7 @@ module.exports =  {
     }
   },
 
-  getByCredentials : function (username, password, cb) {
+  getByCredentials : function (username, cb) {
     user.findOne({ username : username })
       .exec(function (err, user) {
         return cb(err, user);

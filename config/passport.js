@@ -17,14 +17,15 @@ module.exports = function (passport) {
       })
     });
 
-    passport.use(new LocalStrategy(function (username, done) {
+    passport.use(new LocalStrategy(function (username, password, done) {
       service.getByCredentials(username, function (err, user) {
         if (err) return done(err);
-
+        
         if(user && bcrypt.compareSync(password, user.password)) {
           return done(null, user);
         }
 
+        console.log('no auth');
         return done(null, false);
       });
     }));

@@ -2,6 +2,7 @@
   "name": "stalker",
   "version": "0.0.0",
   "dependencies": {
+    "bcrypt": "^0.8.5",
     "body-parser": "~1.0.0",
     "cookie-parser": "~1.0.0",
     "ejs": ">= 0.0.0",
