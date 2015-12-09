@@ -14,13 +14,15 @@ app = express();
 app.use(express.static(__dirname + '/public'));
 
 
-// Mongoose
+// Mongoose connection. Need to read up on pooling.
 mongoose.connect('mongodb://' + config.db.uri);
 
 require('./services/models/user');
+require('./services/models/lead');
+require('./services/models/source');
 
 // Core middleware.
-app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('body-parser').json());
 app.use(require('express-session')(config.session));
 
 
@@ -39,10 +41,16 @@ app.use(passport.session());
 
 // Routes.
 var auth = require('./routes/auth')(app, passport);
+var lead = require('./routes/leads')(app);
 
 app.get('/', function (req, res) {
   res.send('ping! pong!');
 });
 
+
+// Error handling middleware.
+app.use(function (err, req, res, next) {
+  res.status(err.status).send();
+});
 
 module.exports = app;

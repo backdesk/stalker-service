@@ -15,5 +15,10 @@
     "passport-facebook": ">= 0.0.0",
     "passport-local": "^1.0.0",
     "swig": "^1.4.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.4",
+    "should": "^7.1.1",
+    "supertest": "^1.1.0"
   }
 }
