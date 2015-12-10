@@ -33,7 +33,7 @@ module.exports = {
       }
     }
 
-    Lead.find(query)
+    Lead.find(query, 'details lastUpdate source status')
       .exec(function (err, leads) {
         if (err) return cb(err, null);
 
