@@ -47,7 +47,6 @@ describe('leads api', function () {
 
         res.body.leads.length.should.equal(res.body.total);
 
-
     		done();
     	});
 	});
