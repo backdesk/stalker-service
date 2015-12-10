@@ -6,10 +6,6 @@ var app = require('../app.js');
 
 var server = supertest.agent(app.listen(config.port));
 
-describe('sources api', function () {
-
-});
-
 describe('leads api', function () {
   var id;
 
@@ -28,7 +24,7 @@ describe('leads api', function () {
         done();
       });
   });
-
+  
 	it('returns a list of leads', function (done) {
 		server
 			.get('/leads')
