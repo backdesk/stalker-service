@@ -8,6 +8,7 @@
     "ejs": ">= 0.0.0",
     "express": ">= 4.4.5",
     "express-session": "^1.11.3",
+    "lodash": "^3.10.1",
     "method-override": ">= 2.0.2",
     "mongoose": "^4.1.9",
     "morgan": "~1.0.0",
@@ -17,6 +18,8 @@
     "swig": "^1.4.2"
   },
   "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-json-schema": "^1.2.0",
     "mocha": "^2.3.4",
     "should": "^7.1.1",
     "supertest": "^1.1.0"

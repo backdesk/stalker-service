@@ -56,16 +56,24 @@ module.exports = {
   create : function (body, cb) {
     var lead = new Lead(body);
 
+    lead.created = Date.now();
+    lead.lastUpdate = lead.created;
+
     lead.save(function (err, lead) {
-      if(err) {
-        return cb(err)
-      } else {
-        return cb(null, lead);
-      }
+      if(err) return cb(err);
+
+      return cb(null, lead);
     })
   },
 
-  update : function (id, lead, cb) {
+  update : function (id, body, cb) {
+    body.lastUpdate = Date.now();
 
+    Lead.findByIdAndUpdate(id, { $set: body }, { 'new' : true })
+      .exec(function (err, lead) {
+        if (err) return cb(err);
+
+        return cb(null, lead);
+      });
   }
 };

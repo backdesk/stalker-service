@@ -18,10 +18,9 @@ module.exports = function (app, passport) {
   });
 
   app.post('/leads', function (req, res, next) {
-    console.log(req.body);
     service.create(req.body, function (err, data) {
       if(!err) {
-        res.json(data);
+        res.status(201).json(data);
       } else {
         next(err);
       }
@@ -29,7 +28,7 @@ module.exports = function (app, passport) {
   });
 
   app.put('/leads/:id', function (req, res, next) {
-    service.update(req.params, function (err, data) {
+    service.update(req.params.id, req.body, function (err, data) {
       if(!err) {
         res.json(data);
       } else {
