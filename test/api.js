@@ -24,11 +24,11 @@ describe('leads api', function () {
         done();
       });
   });
-  
-	it('returns a list of leads', function (done) {
-		server
-			.get('/leads')
-		  .expect('Content-type',/json/)
+
+  it('returns a list of leads', function (done) {
+    server
+      .get('/leads')
+      .expect('Content-type',/json/)
       .expect(200)
       .end(function(err, res) {
         if(err) return done(err);
@@ -43,9 +43,9 @@ describe('leads api', function () {
 
         res.body.leads.length.should.equal(res.body.total);
 
-    		done();
-    	});
-	});
+        done();
+      });
+  });
 
   it('retrieves a lead by id', function (done) {
     server
