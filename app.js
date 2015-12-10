@@ -2,12 +2,15 @@
 var express = require('express')
   , passport = require('passport')
   , swig = require('swig')
+  , cors = require('cors')
   , mongoose = require('mongoose')
   , config = require('./config/config')();
 
 // Create express instance.
 app = express();
 
+// Enable CORS on all routes. Probably a bad idea but OK for proof of concept.
+app.use(cors());
 
 // Static content folder
 // -- Added BEFORE session middleware so sessions aren't served for static resources.
@@ -18,6 +21,7 @@ app.use(express.static(__dirname + '/public'));
 mongoose.connect('mongodb://' + config.db.uri);
 
 require('./services/models/user');
+require('./services/models/activity');
 require('./services/models/lead');
 require('./services/models/source');
 
@@ -41,7 +45,8 @@ app.use(passport.session());
 
 // Routes.
 var auth = require('./routes/auth')(app, passport);
-var lead = require('./routes/leads')(app);
+var leads = require('./routes/leads')(app);
+var sources = require('./routes/sources')(app);
 
 app.get('/', function (req, res) {
   res.send('ping! pong!');
