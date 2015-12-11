@@ -2,9 +2,9 @@ var service = require('../services/leads');
 
 module.exports = function (app, passport) {
   app.get('/leads', function (req, res, next) {
-  	service.find(req.query, function (err, data) {
+    service.find(req.query, function (err, data) {
       res.json(data);
-  	});
+    });
   });
 
   app.get('/leads/:id', function (req, res, next) {

@@ -25,7 +25,7 @@ module.exports = {
   },
 
   find : function (params, cb) {
-		var query = {};
+    var query = {};
 
     if (params) {
       if (params.status) {
@@ -42,7 +42,7 @@ module.exports = {
           total : leads.length
         });
       });
-	},
+  },
 
   remove : function (id, cb) {
     if(ObjectId.isValid(id) === false) {
