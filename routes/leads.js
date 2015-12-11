@@ -17,6 +17,16 @@ module.exports = function (app, passport) {
     });
   });
 
+  app.get('/leads/:id/activity', function (req, res, next) {
+    service.getActivity(req.params.id, req.query, function (err, data) {
+      if(!err) {
+        res.json(data);
+      } else {
+        next(err);
+      }
+    });
+  });
+
   app.post('/leads/:id/activity', function (req, res, next) {
     service.logActivity(req.params.id, req.body, function (err, data) {
       if(!err) {

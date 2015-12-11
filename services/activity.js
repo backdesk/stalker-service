@@ -4,7 +4,7 @@ var mongoose = require('mongoose')
 var ObjectId = mongoose.Types.ObjectId;
 
 module.exports = {
-  create : function (body, cb) {
+  find : function (params, cb) {
 
   }
 }

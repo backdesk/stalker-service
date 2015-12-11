@@ -1,18 +1,19 @@
 var mongoose = require('mongoose');
 
 var LeadSchema = new mongoose.Schema({
-  created : { type: Date, required: true },
-  lastUpdate : { type: Date },
+  createdAt : { type: Date, required: true },
+  updatedAt : { type: Date },
   details : { type : String, required : true },
   description : { type : String },
   status : { type : String, required : true },
   source :{
     name : { type : String, required : true },
     company : { type : String },
-    channel : { type : String, required : true },
     type : { type : String, required : true }
   },
-  activity : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }]
+  channel : { type : String, required : true },
+  activity : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
+  activityCount : {type: Number, default: 0}
 });
 
 

@@ -1,4 +1,5 @@
 var mongoose = require('mongoose')
+  , _ = require('lodash')
   , Activity = mongoose.model('Activity')
   , Lead = mongoose.model('Lead');
 
@@ -12,7 +13,7 @@ module.exports = {
     }
 
     Lead.findById(id)
-      .populate('activity')
+      .populate({ path : 'activity',  options : { limit: 5, sort : '-createdAt' } })
       .exec(function (err, lead) {
         if (err) return cb(err, null);
 
@@ -33,7 +34,7 @@ module.exports = {
       }
     }
 
-    Lead.find(query, 'details lastUpdate source status')
+    Lead.find(query, 'details updatedAt source status channel')
       .exec(function (err, leads) {
         if (err) return cb(err, null);
 
@@ -59,8 +60,8 @@ module.exports = {
   create : function (body, cb) {
     var lead = new Lead(body);
 
-    lead.created = Date.now();
-    lead.lastUpdate = lead.created;
+    lead.createdAt = Date.now();
+    lead.updateDAt = lead.createdAt;
 
     lead.save(function (err, lead) {
       if (err) return cb(err);
@@ -86,29 +87,51 @@ module.exports = {
       });
   },
 
-  logActivity : function (id, body, cb) {
+  getActivity : function (id, params, cb) {
     if(ObjectId.isValid(id) === false) {
       return cb({ status : 400 });
     }
 
-    var activity = new Activity(body);
+    var options = _.pick(params, 'skip');
 
-    activity.created = Date.now();
+    Activity.find({ lead : id }, null, options)
+      .sort( '-createdAt')
+      .limit(5)
+      .exec(function (err, activity) {
+        if (err) return cb(err);
 
-    activity.save(function (err, a) {
-      if (err) return cb(err);
+        cb(null, activity);
+      })
+  },
 
-      Lead.findByIdAndUpdate(id, { $addToSet : { 'activity': a.id } })
-        .exec(function (err, lead) {
-          if (err) return cb(err);
+  logActivity : function (id, body, cb) {
+    var activity;
 
-          if (!lead) {
-            return cb({ status : 404 });
-          }
+    if(ObjectId.isValid(id) === false) {
+      return cb({ status : 400 });
+    }
 
-          return cb(null, a);
-        });
-    });
+    Lead.count({ _id : id })
+      .then(function (count) {
+        if (count === 0)  cb({ status : 404 });
+
+        activity = new Activity(_.extend(body, {
+          lead : id,
+          createdAt : Date.now()
+        }));
+
+        return activity.save();
+      })
+      .then(function (activity) {
+        return Lead.findByIdAndUpdate(id, {
+          $addToSet : { 'activity': activity.id },
+          $inc : {'activityCount' : 1 },
+          $set : {'updatedAt' : Date.now() }
+        }).exec();
+      })
+      .then(function () {
+        cb(null, activity);
+      }, cb);
   },
 
   update : function (id, body, cb) {
@@ -116,7 +139,7 @@ module.exports = {
       return cb({ status : 400 });
     }
 
-    body.lastUpdate = Date.now();
+    body.updatedAt = Date.now();
 
     Lead.findByIdAndUpdate(id, { $set: body }, { runValidators: true, 'new' : true })
       .exec(function (err, lead) {
