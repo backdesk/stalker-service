@@ -21,9 +21,9 @@ app.use(express.static(__dirname + '/public'));
 mongoose.connect('mongodb://' + config.db.uri);
 
 require('./services/models/user');
+require('./services/models/source');
 require('./services/models/activity');
 require('./services/models/lead');
-require('./services/models/source');
 
 // Core middleware.
 app.use(require('body-parser').json());

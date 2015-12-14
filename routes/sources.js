@@ -37,6 +37,16 @@ module.exports = function (app, passport) {
     });
   });
 
+  app.put('/sources/:id/:condition', function (req, res, next) {
+    service.condition(req.params.id, req.params.condition, function (err, data) {
+      if(!err) {
+        res.status(204).json(data);
+      } else {
+        next(err);
+      }
+    });
+  });
+
   app.delete('/sources/:id', function (req, res, next) {
     service.remove(req.params.id, function (err) {
       if(!err) {

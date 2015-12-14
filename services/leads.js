@@ -13,6 +13,7 @@ module.exports = {
     }
 
     Lead.findById(id)
+      .populate('source')
       .populate({ path : 'activity',  options : { limit: 5, sort : '-createdAt' } })
       .exec(function (err, lead) {
         if (err) return cb(err, null);
@@ -35,6 +36,7 @@ module.exports = {
     }
 
     Lead.find(query, 'details updatedAt source status channel')
+      .populate('source')
       .exec(function (err, leads) {
         if (err) return cb(err, null);
 
