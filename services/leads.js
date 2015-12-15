@@ -68,7 +68,9 @@ module.exports = {
     lead.save(function (err, lead) {
       if (err) return cb(err);
 
-      return cb(null, lead);
+      Lead.populate(lead, 'source', function (err, lead) {
+        return cb(null, lead);
+      });
     })
   },
 
@@ -144,6 +146,7 @@ module.exports = {
     body.updatedAt = Date.now();
 
     Lead.findByIdAndUpdate(id, { $set: body }, { runValidators: true, 'new' : true })
+      .populate('source')
       .exec(function (err, lead) {
         if (err) return cb(err);
 
