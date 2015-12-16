@@ -8,13 +8,9 @@ var ObjectId = mongoose.Types.ObjectId;
 
 module.exports = {
   get : function (id, cb) {
-    if (ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     Lead.findById(id)
-      .populate('source')
-      .populate({ path : 'activity',  options : { limit: 5, sort : '-createdAt' } })
+      .populate('source', '_id type name company')
+      .slice('activity', 0, 5)
       .exec(function (err, lead) {
         if (err) return cb(err, null);
 
@@ -36,7 +32,7 @@ module.exports = {
     }
 
     Lead.find(query, 'details updatedAt source status channel')
-      .populate('source')
+      .populate('source', '_id type name company')
       .exec(function (err, leads) {
         if (err) return cb(err, null);
 
@@ -48,10 +44,6 @@ module.exports = {
   },
 
   remove : function (id, cb) {
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     Lead.findByIdAndRemove(id, function (err) {
       if (err) return cb(err, null);
 
@@ -73,75 +65,66 @@ module.exports = {
   },
 
   dismiss : function (id, cb) {
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
+    Lead.findById(id)
+      .then(function (lead) {
+        if(!lead.activity) lead.activity = [];
 
-    Lead.findByIdAndUpdate(id, { $set: { status : 'junk' } })
+        lead.status = 'junk';
+        lead.updatedAt = Date.now();
+
+        lead.activity.unshift({
+          createdAt : lead.updatedAt,
+          op : 'system',
+          comment : 'Lead was dismissed and set to "junk"'
+        });
+
+        return lead.save();
+      })
+      .then(function () {
+        return cb();
+      }, cb);
+  },
+
+  getActivity : function (id, params, cb) {
+    var limit = 5, skip = parseInt(params.skip, 10);
+
+    skip = _.isNaN(skip) ? 0 : skip;
+
+    Lead.findById(id)
+      .slice('activity', [skip, limit])
       .exec(function (err, lead) {
-        if (err) return cb(err);
+
+        if (err) return cb(err, null);
 
         if (!lead) {
           return cb({ status : 404 });
         }
 
-        return cb(null, lead);
+        return cb(null, lead.activity || []);
       });
   },
 
-  getActivity : function (id, params, cb) {
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
-    var options = _.pick(params, 'skip');
-
-    Activity.find({ lead : id }, null, options)
-      .sort( '-createdAt')
-      .limit(5)
-      .exec(function (err, activity) {
-        if (err) return cb(err);
-
-        cb(null, activity);
-      })
-  },
-
   logActivity : function (id, body, cb) {
-    var activity;
+    Lead.findById(id)
+      .then(function (lead) {
+        if(!lead.activity) lead.activity = [];
 
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
+        body.createdAt = lead.updatedAt = Date.now();
 
-    Lead.count({ _id : id })
-      .then(function (count) {
-        if (count === 0)  cb({ status : 404 });
+        lead.activityCount++;
+        lead.activity.unshift(body);
 
-        activity = new Activity(_.extend(body, {
-          lead : id,
-          createdAt : Date.now()
-        }));
-
-        return activity.save();
+        return lead.save();
       })
-      .then(function (activity) {
-        return Lead.findByIdAndUpdate(id, {
-          $addToSet : { 'activity': activity.id },
-          $inc : {'activityCount' : 1 },
-          $set : {'updatedAt' : Date.now() }
-        }).exec();
-      })
-      .then(function () {
-        cb(null, activity);
+      .then(function (lead) {
+        return cb(null, _.first(lead.activity));
       }, cb);
   },
 
   update : function (id, body, cb) {
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     body.updatedAt = Date.now();
+
+    body = _.omit(body, 'activity');
 
     Lead.findByIdAndUpdate(id, { $set: body }, { runValidators: true, 'new' : true })
       .exec(function (err, lead) {
