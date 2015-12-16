@@ -56,6 +56,7 @@ app.get('/', function (req, res) {
 // Error handling middleware(s).
 app.use((function (err, req, res, next) {
   if(err.name && err.name == 'ValidationError') {
+    console.log(err);
     res.status(400).send();
   } else {
     next();
