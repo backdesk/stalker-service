@@ -23,6 +23,7 @@ mongoose.connect('mongodb://' + config.db.uri);
 require('./services/models/user');
 require('./services/models/source');
 require('./services/models/activity');
+require('./services/models/tag');
 require('./services/models/lead');
 
 // Core middleware.
@@ -44,13 +45,9 @@ app.use(passport.session());
 
 
 // Routes.
-var auth = require('./routes/auth')(app, passport);
-var leads = require('./routes/leads')(app);
-var sources = require('./routes/sources')(app);
-
-app.get('/', function (req, res) {
-  res.send('ping! pong!');
-});
+require('./routes/leads')(app);
+require('./routes/sources')(app);
+require('./routes/tags')(app);
 
 
 // Error handling middleware(s).

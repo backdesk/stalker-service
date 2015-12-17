@@ -1,6 +1,5 @@
 var mongoose = require('mongoose')
   , _ = require('lodash')
-  , Activity = mongoose.model('Activity')
   , Lead = mongoose.model('Lead');
 
 var ObjectId = mongoose.Types.ObjectId;

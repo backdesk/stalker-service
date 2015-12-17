@@ -1,10 +1,7 @@
 var mongoose = require('mongoose');
 
-var ObjectId = mongoose.Types.ObjectId;
-
-var ActivitySchema = new mongoose.Schema({
+module.exports = mongoose.model('Activity', new mongoose.Schema({
   op : { type : String, required : true },
-  comment : { type : String, required : true }
-}, { collection: 'activity' });
-
-module.exports = mongoose.model('Activity', ActivitySchema);
+  comment : { type : String, required : true },
+  createdAt : { type: Date, required: true}
+}));

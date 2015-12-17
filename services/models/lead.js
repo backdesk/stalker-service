@@ -1,10 +1,7 @@
 var mongoose = require('mongoose');
 
-var ActivitySchema = new mongoose.Schema({
-  op : { type : String, required : true },
-  comment : { type : String, required : true },
-  createdAt : { type: Date, required: true}
-});
+var ActivitySchema = mongoose.model('Activity').schema
+  , TagSchema = mongoose.model('Tag').schema;
 
 var LeadSchema = new mongoose.Schema({
   createdAt : { type: Date, required : true },
@@ -15,6 +12,8 @@ var LeadSchema = new mongoose.Schema({
   source : { type : mongoose.Schema.Types.ObjectId, ref: 'Source', required: true },
   channel : { type : String, required : true },
   activity : [ActivitySchema],
+  tags : [TagSchema],
+  weight: { type: Number },
   activityCount : { type : Number, default : 0 }
 });
 

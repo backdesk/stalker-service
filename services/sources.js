@@ -3,8 +3,6 @@ var mongoose = require('mongoose')
   , moment = require('moment')
   , Source = mongoose.model('Source');
 
-var ObjectId = mongoose.Types.ObjectId;
-
 var ABYSS_THRESHOLD = 604800 * 2;
 
 module.exports = {
@@ -19,10 +17,6 @@ module.exports = {
   },
 
   get : function (id, cb) {
-    if (ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     Source.findById(id)
       .exec(function (err, source) {
         if (err) return cb(err, null);
@@ -42,7 +36,7 @@ module.exports = {
 
     if(params.name) {
       _.extend(query, {
-        name : new RegExp('^' + _.escapeRegExp(params.name) + '.*')
+        name : new RegExp('^' + _.escapeRegExp(params.name) + '.*', 'i')
       });
     }
 
@@ -87,10 +81,6 @@ module.exports = {
   condition : function (id, condition, cb) {
     var query;
 
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     if (condition === 'tickles') {
       query = { $inc : { tickles : 1 }}
     } else {
@@ -110,10 +100,6 @@ module.exports = {
   },
 
   update : function (id, body, cb) {
-    if(ObjectId.isValid(id) === false) {
-      return cb({ status : 400 });
-    }
-
     Source.findByIdAndUpdate(id, { $set: body }, { runValidators: true, 'new' : true })
       .exec(function (err, source) {
         if (err) return cb(err);
