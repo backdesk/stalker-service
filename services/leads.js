@@ -8,7 +8,7 @@ var ObjectId = mongoose.Types.ObjectId;
 module.exports = {
   get : function (id, cb) {
     Lead.findById(id)
-      .populate('source', '_id type name company')
+      .populate('source', '_id weight type name company')
       .slice('activity', 0, 5)
       .exec(function (err, lead) {
         if (err) return cb(err, null);
@@ -30,7 +30,7 @@ module.exports = {
       }
     }
 
-    Lead.find(query, 'details updatedAt source status channel')
+    Lead.find(query, 'details weight updatedAt source status channel')
       .populate('source', '_id type name company')
       .exec(function (err, leads) {
         if (err) return cb(err, null);

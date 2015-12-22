@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose')
+  , moment = require('moment');
 
 var ActivitySchema = mongoose.model('Activity').schema
   , TagSchema = mongoose.model('Tag').schema;
@@ -13,8 +14,15 @@ var LeadSchema = new mongoose.Schema({
   channel : { type : String, required : true },
   activity : [ActivitySchema],
   tags : [TagSchema],
-  weight: { type: Number },
   activityCount : { type : Number, default : 0 }
+}, {
+  toJSON : {
+    virtuals : true
+  }
+});
+
+LeadSchema.virtual('weight').get( function() {
+  return 0;
 });
 
 module.exports = mongoose.model('Lead', LeadSchema);

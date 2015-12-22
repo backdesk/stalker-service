@@ -15,8 +15,6 @@ module.exports = {
       });
     }
 
-    console.log(query);
-
     Tag.find(query)
       .exec(function (err, tags) {
         if (err) return cb(err, null);
