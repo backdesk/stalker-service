@@ -1,59 +1,96 @@
-var service = require('../services/sources');
+var _ = require('lodash')
+  , express = require('express')
+  , db = require('../models')
+  , v1 = express.Router();
 
-module.exports = function (app, passport) {
-  app.get('/sources', function (req, res, next) {
-    service.find(req.query, function (err, data) {
-      res.json(data);
-    });
+module.exports = function (app) {
+  v1.get('/sources/:id', function (req, res, next) {
+    db.source.findById(req.params.id)
+      .then(function (source) {
+        var data;
+
+        if(!source) return next({ status: 404 });
+
+        data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.json(_.omit(data, 'updated_at'));
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.get('/sources/:id', function (req, res, next) {
-    service.get(req.params.id, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
+  v1.get('/sources', function (req, res, next) {
+    var where = {}, params = _.pick(req.query, 'offset', 'name', 'status', 'limit');
+
+    if(params.status) {
+      where.status = params.status;
+    }
+
+    if(params.name) {
+      where.name = { $iLike : params.name + '%' }
+    }
+
+    _.extend(params, {
+      where : where
     });
+
+    db.source.findAndCountAll(params)
+      .then(function (result) {
+        res.json(result);
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.post('/sources', function (req, res, next) {
-    service.create(req.body, function (err, data) {
-      if(!err) {
-        res.status(201).json(data);
-      } else {
-        next(err);
-      }
-    });
+  v1.post('/sources', function (req, res, next) {
+    db.source.create(req.body)
+      .then(function (source) {
+        var data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.status(201).json(_.omit(data, 'updated_at'));
+      })
+      .catch (function (e) {
+        next(e);
+      });
   });
 
-  app.put('/sources/:id', function (req, res, next) {
-    service.update(req.params.id, req.body, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
-    });
+  v1.put('/sources/:id', function (req, res, next) {
+    db.source.findById(req.params.id)
+      .then(function (source) {
+        if(!source) return next({ status: 404 });
+
+        return source.update(req.body);
+      })
+      .then(function (source) {
+        var data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.json(_.omit(data, 'updated_at'));
+      })
+      .catch (function (e) {
+        next(e);
+      });
   });
 
-  app.put('/sources/:id/:condition', function (req, res, next) {
-    service.condition(req.params.id, req.params.condition, function (err, data) {
-      if(!err) {
-        res.status(204).json(data);
-      } else {
-        next(err);
-      }
-    });
+  v1.delete('/sources/:id', function (req, res, next) {
+    db.source.findById(req.params.id)
+      .then(function (source) {
+        if(!source) return next({ status: 404 });
+
+        return source.destroy();
+      })
+      .then(function (source) {
+        res.status(204).send();
+      })
+      .catch (function (e) {
+        next(e);
+      })
   });
 
-  app.delete('/sources/:id', function (req, res, next) {
-    service.remove(req.params.id, function (err) {
-      if(!err) {
-        res.sendStatus(204);
-      } else {
-        next(err);
-      }
-    });
-  });
+  app.use('/v1', v1);
+  app.use('/', v1);
 }

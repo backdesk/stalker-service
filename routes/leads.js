@@ -1,79 +1,96 @@
-var service = require('../services/leads');
+var _ = require('lodash')
+  , express = require('express')
+  , db = require('../models')
+  , v1 = express.Router();
 
-module.exports = function (app, passport) {
-  app.get('/leads', function (req, res, next) {
-    service.find(req.query, function (err, data) {
-      res.json(data);
-    });
+var verify = require('../verify');
+
+module.exports = function (app) {
+  v1.get('/leads/:id', function (req, res, next) {
+    db.lead.findById(req.params.id, { include: [db.source] })
+      .then(function (lead) {
+        var data;
+
+        if(!lead) return next({ status: 404 });
+
+        data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.json(_.omit(data, 'updated_at'));
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.get('/leads/:id', function (req, res, next) {
-    service.get(req.params.id, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
+  v1.get('/leads', function (req, res, next) {
+    var where = {}, params = _.pick(req.query, 'offset', 'status', 'limit');
+
+    if(params.status) {
+      where.status = params.status;
+    }
+
+    _.extend(params, {
+      include: [ { model: db.source, attributes: ['id', 'name', 'type'] } ],
+      where : where
     });
+
+    db.lead.findAndCountAll(params)
+      .then(function (result) {
+        res.json(result);
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.get('/leads/:id/activity', function (req, res, next) {
-    service.getActivity(req.params.id, req.query, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
-    });
+  v1.post('/leads', function (req, res, next) {
+    db.lead.create(req.body)
+      .then(function (lead) {
+        var data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.status(201).json(_.omit(data, 'updated_at'));
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.post('/leads/:id/activity', function (req, res, next) {
-    service.logActivity(req.params.id, req.body, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
-    });
+
+  v1.put('/leads/:id', function (req, res, next) {
+    db.lead.findById(req.params.id, { include: [db.source] })
+      .then(function (lead) {
+        if(!lead) return next({ status: 404 });
+
+        return lead.update(req.body);
+      })
+      .then(function (lead) {
+        var data = lead.toJSON();
+
+        res.set('Last-Modified', data.updated_at);
+        res.json(_.omit(data, 'updated_at'));
+      })
+      .catch (function (e) {
+        next(e);
+      });
   });
 
-  app.post('/leads', function (req, res, next) {
-    service.create(req.body, function (err, data) {
-      if(!err) {
-        res.status(201).json(data);
-      } else {
-        next(err);
-      }
-    });
+  v1.delete('/leads/:id', function (req, res, next) {
+    db.lead.findById(req.params.id)
+      .then(function (lead) {
+        if(!lead) return next({ status: 404 });
+
+        return lead.destroy();
+      })
+      .then(function (lead) {
+        res.status(204).send();
+      })
+      .catch (function (e) {
+        next(e);
+      })
   });
 
-  app.put('/leads/dismiss', function (req, res) {
-    service.dismiss(req.body.id, function (err) {
-      if(!err) {
-        res.status(204).json();
-      } else {
-        next(err);
-      }
-    });
-  });
-
-  app.put('/leads/:id', function (req, res, next) {
-    service.update(req.params.id, req.body, function (err, data) {
-      if(!err) {
-        res.json(data);
-      } else {
-        next(err);
-      }
-    });
-  });
-
-  app.delete('/leads/:id', function (req, res, next) {
-    service.remove(req.params.id, function (err) {
-      if(!err) {
-        res.sendStatus(204);
-      } else {
-        next(err);
-      }
-    });
-  });
+  app.use('/v1', v1);
+  app.use('/', v1);
 }

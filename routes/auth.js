@@ -1,27 +1,30 @@
+var _ = require('lodash')
+  , express = require('express')
+  , jwt = require('jsonwebtoken')
+  , db = require('../models')
+  , v1 = express.Router();
+
 module.exports = function (app, passport) {
-  app.get('/login', function (req, res) {
-      res.render('login', {});
+  v1.post('/auth', function (req, res, next) {
+    var username = req.body.username, password = req.body.password;
+
+    if(!username || ! password) {
+      return next({ status : 400, message : 'Please provide a username and password' });
+    }
+
+    db.user.find({ where : { username : username, password : password } })
+      .then(function (user) {
+        if(!user) return next({ status: 404 });
+
+        res.json({
+          token: jwt.sign(user.get(), process.env.JWT_KEY)
+        });
+      })
+      .catch(function (e) {
+        return next(e);
+      });
   });
 
-  app.post('/login',
-      passport.authenticate('local', {
-          failureRedirect : '/login',
-          successRedirect : '/profile'
-      }));
-
-  app.get('/profile', isLoggedIn, function (req, res) {
-      res.render('profile', { user : req.user });
-  });
-
-  app.post('/profile', isLoggedIn, function (req, res) {
-      res.render('profile', { user : req.user });
-  });
-};
-
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) {
-      return next();
-  }
-
-  res.redirect('/');
+  app.use('/v1', v1);
+  app.use('/', v1);
 }

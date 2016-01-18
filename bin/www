@@ -1,6 +1,13 @@
-var app = require('../app');
-var config = require('../config/config')();
+var app = require('../app')
+  , models = require('../models')
+  , config = require('../config/config')()
 
-app.listen(config.port, function () {
-    console.info('Stalker started on port ' + config.port);
-});
+models.sequelize.sync()
+  .then(function () {
+    app.listen(config.port, function () {
+      console.info('Stalker started on port ' + config.port);
+    });
+  })
+  .catch(function (e) {
+    console.log(e);
+  });

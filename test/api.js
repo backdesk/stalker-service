@@ -1,62 +1,89 @@
 var supertest = require('supertest')
-  , config = require('../config/config')()
-  , should = require('should');
+  , should = require('should')
+  , config = require('../config/config')();
 
 var app = require('../app.js');
 
 var server = supertest.agent(app.listen(config.port));
 
-describe('leads api', function () {
-  var id;
+describe('sources', function () {
+  var current_id, source = {
+    name: 'Test User',
+    type: 'agent',
+    phone: '04544 454 543',
+    notes: 'Testing 123'
+  };
 
-  it('creates a lead', function (done) {
+  it('create a new source', function (done) {
     server
-      .post('/leads')
-      .set('Content-Type','application/json')
-      .send({ details : 'Test Lead', status: 'junk' })
-      .expect('Content-type',/json/)
+      .post('/sources')
+      .set('Content-Type', 'application/json')
+      .send(source)
       .expect(201)
-      .end(function(err, res) {
-        if(err) return done(err);
+      .expect('Content-Type',/json/)
+      .end(function (err, res) {
+        if (err) return done(err);
 
-        id = res.body._id;
+        res.body.should.have.property('id');
+        res.body.created_at.should.not.be.null();
+        res.body.name.should.equal('Test User');
+        res.body.type.should.equal('agent');
+
+        current_id = res.body.id;
 
         done();
       });
   });
 
-  it('returns a list of leads', function (done) {
+  it('list sources', function (done) {
     server
-      .get('/leads')
-      .expect('Content-type',/json/)
+      .get('/sources')
+      .set('Content-Type', 'application/json')
       .expect(200)
-      .end(function(err, res) {
-        if(err) return done(err);
+  });
 
-        res.body.should.be.an.Object();
+  it('optionally paginate sources', function (done) {
 
-        res.body.should.have.property('leads')
-          .and.be.an.Array();
+  });
 
-        res.body.should.have.property('total')
-          .and.be.a.Number();
+  it('update an existing source', function (done) {
+    server
+      .put('/sources/' + current_id)
+      .set('Content-Type', 'application/json')
+      .send({
+        name: 'Test User',
+        type: 'agent',
+        status: 'chasing'
+      })
+      .expect(200)
+      .expect('Content-Type',/json/)
+      .end(function (err, res) {
+        if (err) return done(err);
 
-        res.body.leads.length.should.equal(res.body.total);
+        res.body.status.should.equal('chasing');
+        res.body.updated_at.should.not.be.null();
 
         done();
       });
   });
 
-  it('retrieves a lead by id', function (done) {
+  it('run validation when updating an existing source', function (done) {
     server
-      .get('/leads/' + id)
-      .expect('Content-type',/json/)
-      .expect(200, done)
+      .put('/sources/' + current_id)
+      .set('Content-Type', 'application/json')
+      .send({
+        name : ''
+      })
+      .expect(400, done);
   });
 
-  it('deletes a lead', function (done) {
+  it('mark a source for deletion', function (done) {
     server
-      .del('/leads/' + id)
+      .delete('/sources/' + current_id)
       .expect(204, done)
   });
+});
+
+describe('leads', function () {
+
 });

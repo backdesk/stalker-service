@@ -2,29 +2,20 @@
 var express = require('express')
   , passport = require('passport')
   , swig = require('swig')
+  , jwt = require('jsonwebtoken')
   , cors = require('cors')
-  , mongoose = require('mongoose')
   , config = require('./config/config')();
 
 // Create express instance.
 app = express();
 
-// Enable CORS on all routes. Probably a bad idea but OK for proof of concept.
+// Enable CORS on ALL routes. Probably a bad idea but OK for proof of concept.
 app.use(cors());
 
+
 // Static content folder
-// -- Added BEFORE session middleware so sessions aren't served for static resources.
+// -- Added BEFORE any session middleware so sessions aren't served for static resources.
 app.use(express.static(__dirname + '/public'));
-
-
-// Mongoose connection. Need to read up on pooling.
-mongoose.connect('mongodb://' + config.db.uri);
-
-require('./services/models/user');
-require('./services/models/source');
-require('./services/models/activity');
-require('./services/models/tag');
-require('./services/models/lead');
 
 // Core middleware.
 app.use(require('body-parser').json());
@@ -37,31 +28,32 @@ app.set('view engine', 'html');
 app.set('views', __dirname + '/views');
 
 
-// Passport.
-require('./config/passport')(passport);
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-
 // Routes.
-require('./routes/leads')(app);
+require('./routes/comments')(app);
 require('./routes/sources')(app);
-require('./routes/tags')(app);
+require('./routes/leads')(app);
+require('./routes/auth')(app);
 
 
 // Error handling middleware(s).
-app.use((function (err, req, res, next) {
-  if(err.name && err.name == 'ValidationError') {
-    console.log(err);
-    res.status(400).send();
-  } else {
-    next();
-  }
-}))
-
 app.use(function (err, req, res, next) {
-  res.status(err.status).send();
-});
+  var messages;
+
+  if(err.name) {
+    if(err.name === 'SequelizeValidationError') {
+      messages = err.errors.map(function (e) {
+        return 'invalid value provided for property ' + e.path;
+      });
+    }
+
+    return res.status(400).send(messages);
+  }
+
+  if(err.status) {
+    return res.status(err.status).send(err.error);
+  }
+
+  next(err);
+})
 
 module.exports = app;
