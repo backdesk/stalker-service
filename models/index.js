@@ -4,8 +4,8 @@ var fs        = require('fs')
   , Sequelize = require('sequelize');
 
 var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, { 
-	dialect : 'postgres', 
-	host : config.db.host
+  dialect : 'postgres', 
+  host : config.db.host
 });
 
 var db = {};
