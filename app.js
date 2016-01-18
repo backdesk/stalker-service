@@ -19,7 +19,6 @@ app.use(express.static(__dirname + '/public'));
 
 // Core middleware.
 app.use(require('body-parser').json());
-app.use(require('express-session')(config.session));
 
 
 // View engine.

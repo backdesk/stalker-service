@@ -1,11 +1,14 @@
-var fs        = require('fs');
-var path      = require('path');
-var Sequelize = require('sequelize');
-//var sequelize = new Sequelize(config.database, config.username, config.password, config);
-var db        = {};
+var fs        = require('fs')
+  , path      = require('path')
+  , config    = require('../config/config')()
+  , Sequelize = require('sequelize');
 
+var sequelize = new Sequelize(config.db.name, config.db.username, config.db.password, { 
+	dialect : 'postgres', 
+	host : config.db.host
+});
 
-var sequelize = new Sequelize('stalker', 'postgres', 'james', { dialect : 'postgres', host : 'localhost'});
+var db = {};
 
 [
   'user',
@@ -17,8 +20,6 @@ var sequelize = new Sequelize('stalker', 'postgres', 'james', { dialect : 'postg
   var model = sequelize.import(path.join(__dirname, file));
   db[model.name] = model;
 });
-
-
 
 
 db.sequelize = sequelize;
